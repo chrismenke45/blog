@@ -4,9 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
+require('dotenv').config();
 
 
-var mongoDB = 'mongodb+srv://yeehaw:yeehaw@cluster0.r0ejz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
+var mongoDB = process.env.mongoDB_key
 mongoose.connect(mongoDB, { useNewUrlParser: true , useUnifiedTopology: true});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
