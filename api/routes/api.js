@@ -15,8 +15,8 @@ router.get('/posts/:id/update', api_controller.post_update_get);
 
 router.put('/posts/:id/update', api_controller.post_update_put);
 
-router.delete('/comment/:id/delete', api_controller.comment_delete);
+router.delete('/posts/:id/comment/:commentid/delete', api_controller.comment_delete);
 
-router.post('/comment/create', api_controller.comment_create_post);
+router.post('/posts/:id/comment/create', api_controller.comment_create_post);
 
 module.exports = router;

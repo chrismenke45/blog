@@ -28,14 +28,14 @@ exports.index = (req, res, next) => {
         .limit(12)
         .exec((err, post_list) => {
             if (err) { return next(err); }
-            res.json({ post_list })
+            res.json(post_list)
         })
 }
 
 exports.post_detail = (req, res, next) => {
     Post.findById(req.params.id).populate('comments').exec((err, post) => {
         if (err) { return next(err); }
-        res.json({ post })
+        res.json(post)
     })
 }
 
@@ -129,7 +129,7 @@ exports.comment_create_post = [
                 },
                 (theComment, callback) => {
                     Post.findByIdAndUpdate(
-                        req.body.postId,
+                        req.params.id,
                         {
                             $push: { comments: theComment._id },
                         },
@@ -151,13 +151,13 @@ exports.comment_create_post = [
 exports.comment_delete = (req, res, next) => {
     async.waterfall([
         (callback) => {
-            Comment.findByIdAndRemove(req.params.id, (err) => {
+            Comment.findByIdAndRemove(req.params.commentid, (err) => {
                 if (err) { return next(err) }
                 callback(null)
             })
         },
         (callback) => {
-            Post.findByIdAndUpdate(req.body.postId,
+            Post.findByIdAndUpdate(req.params.id,
                 {
                     $pull: { comments: req.params.id },
                 },

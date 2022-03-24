@@ -11,28 +11,39 @@ import PostList from "./components/PostList";
 import IndividualPost from "./components/IndividualPost"
 
 import fetchPosts from "./functions/fetchPosts";
+import fetchPost from "./functions/fetchPost";
 
 function App() {
   const [posts, setPosts] = useState([])
-  const [postsLoaded, setPostsLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [post, setPost] = useState({})
 
 
   const getPosts = () => {
     fetchPosts()
       .then(postsArray => {
         setPosts(postsArray)
-        setPostsLoaded(true)
+        setLoaded(true)
       }
       )
-
   }
+  const getPost = (postid) => {
+    fetchPost(postid)
+      .then(post => {
+        setPost(post)
+        setLoaded(true)
+      }
+      )
+  }
+
+
   return (
     <BrowserRouter>
-      <Header />
+      <Header setLoaded={setLoaded}/>
       <Routes>
-        <Route path="/posts" element={<PostList posts={posts} postsLoaded={postsLoaded} getPosts={getPosts} />}>
+        <Route path="/posts" element={<PostList posts={posts} loaded={loaded} getPosts={getPosts} setLoaded={setLoaded}/>}>
         </Route>
-        <Route path="/posts/:id" element={<IndividualPost/>}>
+        <Route path="/posts/:id" element={<IndividualPost post={post} loaded={loaded} getPost={getPost} setLoaded={setLoaded} />}>
         </Route>
         <Route
         path="/"
