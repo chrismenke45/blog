@@ -9,7 +9,7 @@ router.get('/posts/:id', api_controller.post_detail);
 
 router.post('/posts/create', api_controller.post_create_post);
 
-router.delete('/posts/:id', api_controller.post_delete);
+router.delete('/posts/:id/delete', api_controller.post_delete);
 
 router.get('/posts/:id/update', api_controller.post_update_get);
 

@@ -28,14 +28,14 @@ function CommentForm(props) {
     }
 
     return (
-        <form onSubmit={submitHandler}>
+        <form onSubmit={submitHandler} className="wide">
             <div className='formGroup'>
                 <label htmlFor='comment_text'>Comment:</label>
                 <textarea name='comment_text' maxLength='280' onChange={e => setCommentInfo({ ...commentInfo, comment_text: e.target.value})} required></textarea>
             </div>
             <div className='formGroup'>
                 <label htmlFor='username'>Your Name:</label>
-                <input type='text' name='username' maxLength='30' onChange={e => setCommentInfo({ ...commentInfo, username: e.target.value})}required></input>
+                <input type='text' name='username' maxLength='30' onChange={e => setCommentInfo({ ...commentInfo, username: e.target.value})} required></input>
             </div>
             <button type='submit'>Submit</button>
         </form>

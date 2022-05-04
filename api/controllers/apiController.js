@@ -3,10 +3,12 @@ var Comment = require('../models/comment')
 var async = require('async')
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose')
-/*
+
+//for image staorage
 var path = require('path');
 var multer = require('multer');
 var fs = require('fs');
+const passport = require('passport');
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, './uploads/')
@@ -16,7 +18,7 @@ var storage = multer.diskStorage({
     }
 });
 var upload = multer({ storage: storage });
-*/
+
 
 
 
@@ -40,6 +42,11 @@ exports.post_detail = (req, res, next) => {
 }
 
 exports.post_create_post = [
+
+    passport.authenticate('jwt', { session: false }),
+
+    upload.single('img'),
+
     body('post_title', 'Post title must be under 150 characters').trim().isLength({ max: 100 }).escape(),
     body('post_text').trim().escape(),
 
@@ -50,6 +57,10 @@ exports.post_create_post = [
             {
                 post_title: req.body.post_title,
                 post_text: req.body.post_text,
+                img: {
+                    data: (req.file ? fs.readFileSync(path.join(__dirname, '..', 'uploads' , req.file.filename)) : null),
+                    contentType: 'image/png'
+                },
 
             })
 
@@ -64,15 +75,48 @@ exports.post_create_post = [
     }
 ]
 exports.post_delete = (req, res, next) => {
-    Post.findByIdAndRemove(req.params.id, function deletePost(err) {
+
+    passport.authenticate('jwt', { session: false }),
+    
+    async.waterfall([
+        (callback) => {
+            Post.findById(req.params.id, 'comments').exec((err, thePost) => {
+                if (err) { return next(err); }
+                callback(null, thePost)
+            })
+        },
+        (thePost, callback) => {
+            if (thePost.comments.length != 0) {
+                thePost.comments.map(theComment => {
+                    Comment.findByIdAndRemove(theComment, (err) => {
+                        if (err) { return next(err); }
+                    })
+                })
+            }
+            callback(null)
+        },
+        (callback) => {
+            Post.findByIdAndRemove(req.params.id, function deletePost(err) {
+                if (err) { return next(err); }
+            })
+            callback(null)
+        }
+
+    ], (err) => {
         if (err) { return next(err); }
-        res.json({
-            message: "Post successfully deleted"
-        })
-    })
+        res.json(
+            {
+                message: "Post successfully deleted"
+            }
+        )
+    }
+    )
+
 }
 
 exports.post_update_get = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }),
+
     Post.findById(req.params.id).exec((err, post) => {
         if (err) { return next(err); }
         res.json({ post })
@@ -80,6 +124,11 @@ exports.post_update_get = (req, res, next) => {
 }
 
 exports.post_update_put = [
+
+    passport.authenticate('jwt', { session: false }),
+
+    upload.single('img'),
+
     body('post_title', 'Post title must be under 150 characters').trim().isLength({ max: 100 }).escape(),
     body('post_text',).trim().escape(),
 
@@ -89,16 +138,24 @@ exports.post_update_put = [
             {
                 post_title: req.body.post_title,
                 post_text: req.body.post_text,
+                updated: Date.now(),
                 _id: req.params.id
 
             })
+        if (req.file) {
+            Object.assign(post, {
+                img: {
+                    data: (req.file ? fs.readFileSync(path.join(__dirname, '..', 'uploads' , req.file.filename)) : null),
+                    contentType: 'image/png'
+                }
+            })
+        }
 
         if (!errors.isEmpty()) {
             return res.json({ 'post': post, 'errors': errors.array() })
         } else {
             Post.findByIdAndUpdate(req.params.id, post, {}, (err, thePost) => {
                 if (err) { return next(err) }
-                console.log('this is', thePost)
                 res.json(thePost)
             })
         }
@@ -149,6 +206,8 @@ exports.comment_create_post = [
     }
 ]
 exports.comment_delete = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }),
+
     async.waterfall([
         (callback) => {
             Comment.findByIdAndRemove(req.params.commentid, (err) => {
@@ -159,7 +218,7 @@ exports.comment_delete = (req, res, next) => {
         (callback) => {
             Post.findByIdAndUpdate(req.params.id,
                 {
-                    $pull: { comments: req.params.id },
+                    $pull: { comments: req.params.commentid },
                 },
                 { new: true },
                 (err) => {

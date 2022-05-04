@@ -9,7 +9,7 @@ function PostList(props) {
         getPosts();//on mount pull data from api to get posts
     }, []);
     return (
-        <main>
+        <main className='mainInfo'>
             {!loaded ? <div className="spin"></div> : (
                         posts.map(post => {
                         return <PostDisplay key={post._id} post={post} setLoaded={setLoaded} />
